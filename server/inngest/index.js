@@ -1,0 +1,69 @@
+import { Prisma } from "@prisma/client";
+import { Inngest } from "inngest";
+import prisma from "../configs/prisma.js"
+
+// client to send and receive events
+export const inngest = new Inngest({ id: "project-management" });
+
+const syncUserCreation = inngest.createFunction(
+    {id : 'sync-user-from-clerk'},
+    {event : 'clerk/User.created'},
+    async ({event}) => {
+        const {data} = event
+        await prisma.user.create({
+            data: {
+                id:data.id,
+                email:data?.email_addresses[0]?.email_addres,
+                name:data?.first_name + " " + data?.last_name,
+                image: data?.image_url, 
+            }
+        })
+
+    }
+)
+
+
+
+//deleet user
+const syncUserDeletion = inngest.createFunction(
+    {id : 'delete-user-with-clerk'},
+    {event : 'clerk/User.deleted'},
+    async ({event}) => {
+        const {data} = event
+        await prisma.user.delete({
+            where: {
+                id: data.id,
+            }
+        })
+
+    }
+)
+
+//update user
+
+const syncUserUpdation = inngest.createFunction(
+    {id : 'update-user-from-clerk'},
+    {event : 'clerk/User.updated'},
+    async ({event}) => {
+        const {data} = event
+        await prisma.user.update({
+            where: {
+                id:data.id
+            },
+            data: {
+                
+                email:data?.email_addresses[0]?.email_addres,
+                name:data?.first_name + " " + data?.last_name,
+                image: data?.image_url, 
+            }
+        })
+
+    }
+)
+
+export const functions = [
+    syncUserCreation,
+    syncUserDeletion,
+    syncUserUpdation
+
+];
