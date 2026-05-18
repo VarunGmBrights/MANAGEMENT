@@ -28,7 +28,8 @@ jobs:
 
       - name: Install Frontend deps
         working-directory: Front
-        run: npm ci
+        run: npm install
+
 
       - name: Build (Vite)
         working-directory: Front
